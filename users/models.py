@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
+from simple_history.models import HistoricalRecords  # type: ignore[import]
 
 class CustomUserManager(BaseUserManager):
     """
@@ -33,17 +34,21 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)  # type: ignore[assignment]
+    is_staff = models.BooleanField(default=False)  # type: ignore[assignment]
     date_joined = models.DateTimeField(auto_now_add=True)
-
+    history = HistoricalRecords()
     objects = CustomUserManager()
+
+    class Meta:  # type: ignore[override]
+        verbose_name = "user"
+        verbose_name_plural = "users"
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Email is already required by USERNAME_FIELD
 
-    def __str__(self):
-        return self.email
+    def __str__(self) -> str:
+        return str(self.email)
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip()

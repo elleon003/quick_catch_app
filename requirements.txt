@@ -6,6 +6,7 @@ django-cors-headers==4.9.0
 social-auth-app-django==5.7.0
 django-sesame==3.2.3
 django-ninja==1.5.3
+django-simple-history==3.11.0
 
 # Two-factor authentication
 django-two-factor-auth==1.18.1

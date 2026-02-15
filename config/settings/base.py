@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'two_factor',
     'two_factor.plugins.email',
     'two_factor.plugins.yubikey', 
+    'simple_history',
     
     # Local apps
     'theme',
@@ -57,6 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
