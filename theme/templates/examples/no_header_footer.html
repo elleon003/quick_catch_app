@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Page without Header & Footer{% endblock %}
+
+{% block header %}
+    <!-- Override to show nothing -->
+{% endblock %}
+
+{% block footer %}
+    <!-- Override to show nothing -->
+{% endblock %}
+
+{% block content %}
+    <h1>Clean page with no header or footer</h1>
+    <p>Perfect for modals, embeds, or print views.</p>
+{% endblock %}

@@ -1,0 +1,65 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Django
+*.log
+db.sqlite3
+staticfiles/
+media/
+
+# Node.js - exclude since multi-stage build installs fresh
+theme/static_src/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker files not needed in build context
+.dockerignore
+
+# Documentation
+README.md
+CLAUDE.md
+docs/
+
+# Environment files (secrets)
+.env
+.env.example
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/

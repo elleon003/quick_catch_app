@@ -1,0 +1,74 @@
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: django_starter
+      POSTGRES_USER: django_user
+      POSTGRES_PASSWORD: django_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U django_user -d django_starter"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - static_files:/app/staticfiles
+      - node_modules:/app/theme/static_src/node_modules
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override host-specific values for Docker networking
+      - DB_HOST=db
+      - REDIS_URL=redis://redis:6379/1
+      - ALLOWED_HOSTS=localhost,127.0.0.1,web,0.0.0.0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  tailwind:
+    build: .
+    command: python manage.py tailwind start
+    volumes:
+      - .:/app
+      - node_modules:/app/theme/static_src/node_modules
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - web
+    profiles:
+      - dev
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_files:
+  node_modules:

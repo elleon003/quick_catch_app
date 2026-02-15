@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Settings - Django Starter{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2">Account Settings</h1>
+    <p class="text-base-content/70">Manage your account preferences and information</p>
+  </div>
+
+  <!-- Profile Information -->
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <h2 class="card-title">Profile Information</h2>
+      <div class="space-y-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Email (Login)</span>
+          </label>
+          <input type="email" value="{{ user.email }}" class="input input-bordered" readonly>
+        </div>
+        
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">First Name</span>
+          </label>
+          <input type="text" value="{{ user.first_name|default:'' }}" class="input input-bordered" readonly>
+        </div>
+        
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Last Name</span>
+          </label>
+          <input type="text" value="{{ user.last_name|default:'' }}" class="input input-bordered" readonly>
+        </div>
+        
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Member Since</span>
+          </label>
+          <input type="text" value="{{ user.date_joined|date:'F d, Y' }}" class="input input-bordered" readonly>
+        </div>
+      </div>
+      
+      <div class="card-actions justify-end">
+        <button class="btn btn-primary" disabled>Edit Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Actions -->
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Account Actions</h2>
+      <div class="space-y-4">
+        <div class="flex justify-between items-center">
+          {% comment %} <div>
+            <h3 class="font-semibold">Authentication Methods</h3>
+            <p class="text-sm text-base-content/70">Manage your sign-in options (Google, LinkedIn, Email, etc.)</p>
+          </div>
+          <a href="{% url 'auth_settings' %}" class="btn btn-outline">Manage</a>
+        </div> {% endcomment %}
+        
+        <div class="divider"></div>
+        
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-semibold">Change Password</h3>
+            <p class="text-sm text-base-content/70">Update your account password</p>
+          </div>
+          <button class="btn btn-outline" disabled>Change</button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-semibold text-error">Delete Account</h3>
+            <p class="text-sm text-base-content/70">Permanently delete your account and all data</p>
+          </div>
+          <button class="btn btn-outline btn-error" disabled>Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="mt-8">
+    <a href="{% url 'dashboard' %}" class="btn btn-ghost">← Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

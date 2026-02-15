@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Django Starter{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero min-h-screen bg-base-200">
+  <div class="hero-content text-center">
+    <div class="max-w-md">
+      <h1 class="text-5xl font-bold">Django Starter</h1>
+      <p class="py-6">A powerful and flexible foundation for your next Django project. Built with modern tools and best practices.</p>
+      {% if not user.is_authenticated %}
+        <div class="flex gap-4 justify-center">
+          <a href="{% url 'register' %}" class="btn btn-primary">Get Started</a>
+          <a href="{% url 'login' %}" class="btn btn-outline">Sign In</a>
+        </div>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-16">
+  <div class="text-center mb-12">
+    <h2 class="text-3xl font-bold mb-4">Features</h2>
+    <p class="text-lg text-base-content/70">Everything you need to build modern web applications</p>
+  </div>
+  
+  <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body text-center">
+        <div class="text-4xl mb-4">🚀</div>
+        <h3 class="card-title justify-center">Fast Setup</h3>
+        <p>Get up and running quickly with pre-configured authentication, user management, and modern styling.</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body text-center">
+        <div class="text-4xl mb-4">🎨</div>
+        <h3 class="card-title justify-center">Beautiful UI</h3>
+        <p>Built with Tailwind CSS and DaisyUI for responsive, accessible, and beautiful user interfaces.</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body text-center">
+        <div class="text-4xl mb-4">🔒</div>
+        <h3 class="card-title justify-center">Secure</h3>
+        <p>Production-ready security settings and best practices built in from day one.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA Section -->
+<div class="bg-primary text-primary-content py-16">
+  <div class="text-center max-w-2xl mx-auto">
+    <h2 class="text-3xl font-bold mb-4">Ready to build something amazing?</h2>
+    <p class="text-lg mb-8">Join thousands of developers who trust Django Starter for their projects.</p>
+    {% if not user.is_authenticated %}
+      <a href="{% url 'register' %}" class="btn btn-secondary btn-lg">Start Building Today</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

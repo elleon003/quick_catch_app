@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Page with Custom Header{% endblock %}
+
+{% block header %}
+    <!-- Custom header instead of the default -->
+    <div class="hero bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+        <div class="hero-content text-center">
+            <h1 class="text-5xl font-bold">Custom Header</h1>
+            <p class="py-6">This page has a custom header instead of the navigation</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <h2>Content with custom header above</h2>
+    <p>The footer below is still the default one.</p>
+{% endblock %}
