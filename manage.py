@@ -2,6 +2,18 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import warnings
+
+# Suppress multiprocessing resource_tracker leak warning on shutdown when running
+# "tailwind dev" (Django + Tailwind watcher). Child processes exit on Ctrl+C
+# without cleaning semaphores; harmless but noisy.
+if len(sys.argv) >= 3 and sys.argv[1] == "tailwind" and sys.argv[2] == "dev":
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*resource_tracker.*leaked.*",
+        category=UserWarning,
+        module="multiprocessing.resource_tracker",
+    )
 
 
 def main():
