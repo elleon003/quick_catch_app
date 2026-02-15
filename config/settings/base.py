@@ -153,10 +153,6 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@example.com')
 
-# Login/Logout URLs
-LOGIN_URL = '/users/login/'
-LOGIN_REDIRECT_URL = '/mindflow/'
-LOGOUT_REDIRECT_URL = '/'
 
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
 AUTHENTICATION_BACKENDS = (
