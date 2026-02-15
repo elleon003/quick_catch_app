@@ -71,7 +71,7 @@
 --color-neutral: oklch(90% 0.01 90);
 --color-neutral-content: oklch(20% 0.01 90);
 
-/* Default Action Colors */
+/* Dark Mode Action Colors */
 --color-info: oklch(90% 0.2 220);
 --color-info-content: oklch(98% 0.01 220);
 --color-success: oklch(85% 0.25 140);

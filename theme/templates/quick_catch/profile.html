@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Quick Catch settings{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <h1 class="text-xl font-semibold mb-6">Quick Catch settings</h1>
+
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <ul class="space-y-2 text-base-content/80">
+        <li><strong>Default energy:</strong> {{ profile.default_energy_level|capfirst }}</li>
+        <li><strong>Timezone:</strong> {{ profile.timezone }}</li>
+        <li><strong>Email plan summaries:</strong> {{ profile.email_opt_in|yesno:"Yes,No" }}</li>
+        <li><strong>Focus:</strong> {{ profile.neurodivergent_focus|capfirst }}</li>
+      </ul>
+      <p class="text-sm text-base-content/50 mt-4">
+        Editable profile form can be added here or merged into account settings.
+      </p>
+      <div class="card-actions justify-end mt-4">
+        <a href="{% url 'quick_catch:dump' %}" class="btn btn-ghost btn-sm">Back to Quick Catch</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

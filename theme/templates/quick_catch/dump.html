@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Dump my brain – Quick Catch{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="text-center mb-8">
+    <h1 class="text-2xl font-semibold text-base-content/90">Quick Catch</h1>
+    <p class="text-base-content/60 mt-1">Get it out of your head. We'll help you see what matters.</p>
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="form-control">
+      <label class="label" for="{{ form.input_text.id_for_label }}">
+        <span class="label-text">What's on your mind?</span>
+      </label>
+      <textarea
+        name="{{ form.input_text.name }}"
+        id="{{ form.input_text.id_for_label }}"
+        class="textarea textarea-bordered w-full min-h-[12rem] text-base {% if form.input_text.errors %}textarea-error{% endif %}"
+        placeholder="Type or paste everything on your mind..."
+        rows="12"
+      >{{ form.input_text.value|default:'' }}</textarea>
+      {% if form.input_text.errors %}
+        <label class="label">
+          <span class="label-text-alt text-error">{{ form.input_text.errors.0 }}</span>
+        </label>
+      {% endif %}
+    </div>
+
+    <div class="form-control">
+      <span class="label-text mb-2">Energy level</span>
+      <div class="join w-full">
+        {% for value, label in form.energy_level.field.choices %}
+          <label class="join-item btn flex-1 cursor-pointer {% if form.energy_level.value == value %}btn-primary{% else %}btn-outline{% endif %}">
+            <input
+              type="radio"
+              name="{{ form.energy_level.name }}"
+              value="{{ value }}"
+              class="sr-only"
+              {% if form.energy_level.value == value %}checked{% endif %}
+            >
+            {{ label }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 justify-between items-center">
+      <button type="submit" class="btn btn-primary w-full sm:w-auto">
+        Dump my brain
+      </button>
+      <a href="{% url 'quick_catch:dump_list' %}" class="link link-hover text-sm text-base-content/70">Past dumps</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

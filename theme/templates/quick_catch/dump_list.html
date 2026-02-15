@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Past dumps – Quick Catch{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold">Past dumps</h1>
+    <a href="{% url 'quick_catch:dump' %}" class="btn btn-primary btn-sm">New dump</a>
+  </div>
+
+  {% if dumps %}
+    <ul class="space-y-3">
+      {% for dump in dumps %}
+        <li>
+          <a href="{% url 'quick_catch:result' dump_id=dump.id %}" class="block card bg-base-100 shadow hover:shadow-md transition-shadow">
+            <div class="card-body py-4">
+              <p class="text-base-content/80 line-clamp-2">
+                {{ dump.input_text|truncatewords:20 }}
+              </p>
+              <p class="text-sm text-base-content/50 mt-1">
+                {{ dump.created_at|date:"M j, Y g:i A" }} · {{ dump.energy_level|capfirst }} · {{ dump.word_count|default:0 }} words
+              </p>
+            </div>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-base-content/60">No dumps yet. <a href="{% url 'quick_catch:dump' %}" class="link link-primary">Dump your brain</a> to get started.</p>
+  {% endif %}
+</div>
+{% endblock %}

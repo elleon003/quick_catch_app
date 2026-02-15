@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Local apps
     'theme',
     'users',
+    'quick_catch',
 ]
 
 MIDDLEWARE = [

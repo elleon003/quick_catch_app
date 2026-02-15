@@ -22,6 +22,7 @@ urlpatterns = [
     path("", include('social_django.urls', namespace="social")),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
+    path('catch/', include('quick_catch.urls')),
     path('', include(tf_urls)),
 ]
 
