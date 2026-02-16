@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -64,6 +65,14 @@ def _save_triage_result(dump, result):
     return run
 
 
+def _wants_json_response(request):
+    """True if client expects JSON (e.g. fetch for loading screen)."""
+    return (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or "application/json" in (request.headers.get("Accept") or "")
+    )
+
+
 @login_required
 def dump_view(request):
     """Brain dump entry: large textarea + energy level + Process Dump button."""
@@ -77,7 +86,16 @@ def dump_view(request):
             dump.save()
             result = run_triage(dump.input_text, dump.energy_level)
             _save_triage_result(dump, result)
+            if _wants_json_response(request):
+                return JsonResponse(
+                    {"redirect": reverse("quick_catch:result", kwargs={"dump_id": str(dump.id)})}
+                )
             return redirect("quick_catch:result", dump_id=str(dump.id))
+        if _wants_json_response(request):
+            return JsonResponse(
+                {"errors": form.errors},
+                status=400,
+            )
     else:
         form = BrainDumpForm(initial={"energy_level": profile.default_energy_level})
     return render(

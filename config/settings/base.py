@@ -178,8 +178,10 @@ SOCIAL_AUTH_LINKEDIN_OAUTH2_FIELD_SELECTORS = ['emailAddress']
 SESAME_MAX_AGE = 60 * 60  # 1 hour expiration for magic links
 SESAME_ONE_TIME = True  # Magic links can only be used once
 
-# LocalAI (OpenAI-compatible) for Quick Catch cognitive triage
-LOCALAI_BASE_URL = os.environ.get('LOCALAI_BASE_URL', 'http://localhost:8080/v1')
-LOCALAI_MODEL = os.environ.get('LOCALAI_MODEL', 'qwen3')
-LOCALAI_API_KEY = os.environ.get('LOCALAI_API_KEY', '')  # Optional; many self-hosted setups use no key
-LOCALAI_TIMEOUT = int(os.environ.get('LOCALAI_TIMEOUT', '120'))
+# Ollama native API for Quick Catch cognitive triage (POST /api/chat)
+# OLLAMA_BASE_URL = server root, e.g. https://your-ollama-host.com (no /v1 or /api)
+OLLAMA_BASE_URL = os.environ.get('OLLAMA_BASE_URL')
+OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL')
+OLLAMA_TIMEOUT = int(os.environ.get('OLLAMA_TIMEOUT', '300'))
+# Optional: Bearer token for hosted Ollama (leave unset for local)
+OLLAMA_API_KEY = os.environ.get('OLLAMA_API_KEY')

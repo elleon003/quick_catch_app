@@ -9,7 +9,7 @@
     <p class="text-base-content/70 mt-1">Get it out of your head. We'll help you see what matters.</p>
   </div>
 
-  <form method="post" class="space-y-6">
+  <form id="brain-dump-form" method="post" class="space-y-6">
     {% csrf_token %}
 
     <div class="form-control">
@@ -23,6 +23,9 @@
         placeholder="Type or paste everything on your mind..."
         rows="12"
       >{{ form.input_text.value|default:'' }}</textarea>
+      <label id="input-text-error" class="label hidden">
+        <span class="label-text-alt text-error"></span>
+      </label>
       {% if form.input_text.errors %}
         <label class="label">
           <span class="label-text-alt text-error">{{ form.input_text.errors.0 }}</span>
@@ -49,11 +52,106 @@
     </div>
 
     <div class="flex flex-col sm:flex-row gap-3 justify-between items-center">
-      <button type="submit" class="btn btn-primary w-full sm:w-auto">
+      <button type="submit" id="submit-btn" class="btn btn-primary w-full sm:w-auto">
         Dump my brain
       </button>
       <a href="{% url 'quick_catch:dump_list' %}" class="link link-secondary link-hover text-sm font-medium">Past dumps</a>
     </div>
   </form>
 </div>
+
+<!-- Full-screen loading overlay (shown during AI processing) -->
+<div id="triage-loading" class="fixed inset-0 z-50 hidden bg-base-100/95 backdrop-blur-sm flex flex-col items-center justify-center gap-6 px-4" aria-live="polite" aria-busy="true">
+  <div class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></div>
+  <p id="triage-status" class="text-lg font-medium text-base-content/80 text-center max-w-md">
+    Reading your brain dump…
+  </p>
+  <p class="text-sm text-base-content/60">This usually takes 30–90 seconds. Hang tight.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  var form = document.getElementById('brain-dump-form');
+  var overlay = document.getElementById('triage-loading');
+  var statusEl = document.getElementById('triage-status');
+  var submitBtn = document.getElementById('submit-btn');
+  var inputErrorEl = document.getElementById('input-text-error');
+  var statusMessages = [
+    "Reading your brain dump…",
+    "Extracting tasks…",
+    "Identifying top 3 priorities…",
+    "Checking for blockers…",
+    "Building your 10-minute action plan…",
+    "Almost there…"
+  ];
+  var statusIndex = 0;
+  var statusInterval = null;
+
+  function showOverlay() {
+    statusIndex = 0;
+    if (statusEl) statusEl.textContent = statusMessages[0];
+    statusInterval = setInterval(function() {
+      statusIndex = (statusIndex + 1) % statusMessages.length;
+      if (statusEl) statusEl.textContent = statusMessages[statusIndex];
+    }, 7000);
+    overlay.classList.remove('hidden');
+    if (submitBtn) submitBtn.disabled = true;
+  }
+
+  function hideOverlay() {
+    clearInterval(statusInterval);
+    overlay.classList.add('hidden');
+    if (submitBtn) submitBtn.disabled = false;
+  }
+
+  function showFieldError(message) {
+    if (!inputErrorEl) return;
+    var span = inputErrorEl.querySelector('.label-text-alt');
+    if (span) span.textContent = message || 'Please fix the errors above.';
+    inputErrorEl.classList.remove('hidden');
+  }
+
+  function clearFieldError() {
+    if (inputErrorEl) inputErrorEl.classList.add('hidden');
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearFieldError();
+    var formData = new FormData(form);
+    showOverlay();
+
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    })
+    .then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw { status: res.status, data: data };
+        return data;
+      });
+    })
+    .then(function(data) {
+      if (data.redirect) window.location.href = data.redirect;
+    })
+    .catch(function(err) {
+      hideOverlay();
+      if (err.data && err.data.errors) {
+        var inputErrors = err.data.errors.input_text || err.data.errors.__all__;
+        var msg = Array.isArray(inputErrors) ? inputErrors[0] : (inputErrors || 'Something went wrong.');
+        showFieldError(typeof msg === 'string' ? msg : 'Please fix the errors above.');
+      } else {
+        showFieldError('Something went wrong. Please try again.');
+      }
+    });
+  });
+})();
+</script>
 {% endblock %}

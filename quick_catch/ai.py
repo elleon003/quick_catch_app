@@ -1,17 +1,18 @@
 """
 Cognitive triage AI pipeline for Quick Catch BrainDump.
-Calls a LocalAI (OpenAI-compatible) endpoint and parses structured output
-into TriageRun and TriageTask data.
+Uses the native Ollama API (POST /api/chat) so it works with any Ollama
+server, including hosted installs that only expose /api/generate and /api/chat.
+Parses structured JSON output into TriageRun and TriageTask data.
 """
 
 import json
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
+import requests
 from django.conf import settings
-from openai import OpenAI
 
 
 SYSTEM_PROMPT = """You are a cognitive triage engine for neurodivergent founders.
@@ -81,29 +82,82 @@ def _parse_json_from_response(content: str) -> dict[str, Any] | None:
         return None
 
 
+def _ollama_chat(
+    base_url: str,
+    model: str,
+    messages: list[dict[str, str]],
+    timeout: int,
+    api_key: str | None,
+    options: dict[str, Any] | None = None,
+) -> str:
+    """
+    Call Ollama native POST /api/chat. base_url is the server root
+    (e.g. https://your-ollama.com with no trailing path).
+    Returns the assistant message content.
+    """
+    url = f"{base_url.rstrip('/')}/api/chat"
+    body = {
+        "model": model,
+        "messages": messages,
+        "stream": False,
+        "format": "json",
+        "options": options or {"temperature": 0.2},
+    }
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    resp = requests.post(url, json=body, headers=headers, timeout=timeout)
+    resp.raise_for_status()
+    data = resp.json()
+    message = data.get("message") or {}
+    return (message.get("content") or "").strip()
+
+
 def run_triage(dump_text: str, energy_level: str) -> TriageResult:
     """
-    Call LocalAI with the cognitive triage prompt and return parsed result.
-    Uses settings.LOCALAI_BASE_URL, LOCALAI_MODEL, LOCALAI_API_KEY, LOCALAI_TIMEOUT.
+    Call Ollama via native API (POST /api/chat). Works with any Ollama server;
+    set OLLAMA_BASE_URL to the server root (e.g. https://your-host.com).
     """
-    base_url = getattr(settings, "LOCALAI_BASE_URL", "http://localhost:8080/v1")
-    model = getattr(settings, "LOCALAI_MODEL", "qwen3")
-    api_key = getattr(settings, "LOCALAI_API_KEY", "") or "not-needed"
-    timeout = getattr(settings, "LOCALAI_TIMEOUT", 120)
-
-    client = OpenAI(base_url=base_url, api_key=api_key)
+    base_url = getattr(settings, "OLLAMA_BASE_URL", None) or "http://localhost:11434"
+    base_url = (base_url or "").strip().rstrip("/") or "http://localhost:11434"
+    model = getattr(settings, "OLLAMA_MODEL", "qwen3:4b")
+    timeout = getattr(settings, "OLLAMA_TIMEOUT", 300)
+    api_key = getattr(settings, "OLLAMA_API_KEY", None)
     user_message = _build_user_message(dump_text, energy_level)
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_message},
+    ]
 
     start = time.perf_counter()
     try:
-        resp = client.chat.completions.create(
+        raw_content = _ollama_chat(
+            base_url=base_url,
             model=model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_message},
-            ],
-            temperature=0.2,
+            messages=messages,
             timeout=timeout,
+            api_key=api_key,
+            options={"temperature": 0.2},
+        )
+    except requests.RequestException as e:
+        err_msg = str(e).strip()
+        if hasattr(e, "response") and e.response is not None:
+            try:
+                detail = e.response.json()
+                err_msg = f"Error code: {e.response.status_code} - {detail}"
+            except Exception:
+                err_msg = f"Error code: {e.response.status_code} - {e.response.text or err_msg}"
+        if "timed out" in err_msg.lower() or "timeout" in err_msg.lower():
+            err_msg = f"{err_msg} Increase OLLAMA_TIMEOUT (e.g. 300 or 600) if the model is slow or loading."
+        return TriageResult(
+            extracted_tasks=[],
+            top_3_indices=[],
+            blockers=[],
+            action_plan=f"AI request failed: {err_msg}",
+            model_name=model,
+            latency_ms=None,
+            raw_content="",
+            parse_error=str(e),
         )
     except Exception as e:
         return TriageResult(
@@ -118,7 +172,6 @@ def run_triage(dump_text: str, energy_level: str) -> TriageResult:
         )
 
     latency_ms = int((time.perf_counter() - start) * 1000)
-    raw_content = (resp.choices[0].message.content or "").strip() if resp.choices else ""
     data = _parse_json_from_response(raw_content)
 
     if not data:
