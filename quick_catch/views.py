@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from .ai import run_triage
 from .forms import BrainDumpForm
 from .models import BrainDump, Profile, TriageRun, TriageTask
 
@@ -20,6 +21,49 @@ def _get_profile(user):
     return profile
 
 
+def _save_triage_result(dump, result):
+    """Create TriageRun and TriageTasks from AI TriageResult."""
+    run = TriageRun.objects.create(
+        dump=dump,
+        user=dump.user,
+        prompt_version="v1",
+        model_name=result.model_name,
+        temperature=0.2,
+        action_plan_md=result.action_plan,
+        blockers=result.blockers,
+        top_3_task_ids=[],  # set after tasks exist
+        latency_ms=result.latency_ms,
+    )
+    tasks_by_index = {}
+    for i, item in enumerate(result.extracted_tasks):
+        if not isinstance(item, dict):
+            continue
+        title = (item.get("title") or "").strip() or f"Task {i + 1}"
+        micro_steps = item.get("micro_steps")
+        if not isinstance(micro_steps, list):
+            micro_steps = []
+        micro_steps = [str(s) for s in micro_steps][:20]
+        is_top3 = i in result.top_3_indices
+        rank_order = (result.top_3_indices.index(i) + 1) if is_top3 else None
+        task = TriageTask.objects.create(
+            triage_run=run,
+            user=dump.user,
+            title=title,
+            micro_steps=micro_steps,
+            is_top3=is_top3,
+            rank_order=rank_order,
+        )
+        tasks_by_index[i] = task
+    top_3_ids = [
+        str(tasks_by_index[i].id)
+        for i in result.top_3_indices
+        if i in tasks_by_index
+    ]
+    run.top_3_task_ids = top_3_ids
+    run.save(update_fields=["top_3_task_ids"])
+    return run
+
+
 @login_required
 def dump_view(request):
     """Brain dump entry: large textarea + energy level + Process Dump button."""
@@ -31,7 +75,8 @@ def dump_view(request):
             dump.user = request.user
             dump.source = "web"
             dump.save()
-            _create_placeholder_triage_run(dump)
+            result = run_triage(dump.input_text, dump.energy_level)
+            _save_triage_result(dump, result)
             return redirect("quick_catch:result", dump_id=str(dump.id))
     else:
         form = BrainDumpForm(initial={"energy_level": profile.default_energy_level})
@@ -39,24 +84,6 @@ def dump_view(request):
         request,
         "quick_catch/dump.html",
         {"form": form, "profile": profile},
-    )
-
-
-def _create_placeholder_triage_run(dump):
-    """Create a TriageRun with placeholder content until the AI pipeline runs."""
-    TriageRun.objects.get_or_create(
-        dump=dump,
-        prompt_version="v1",
-        defaults={
-            "user": dump.user,
-            "model_name": "placeholder",
-            "action_plan_md": (
-                "Your 10-Minute Action Plan will appear here after processing. "
-                "The AI pipeline can be wired to replace this placeholder."
-            ),
-            "top_3_task_ids": [],
-            "blockers": [],
-        },
     )
 
 
