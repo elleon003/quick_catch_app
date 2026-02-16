@@ -4,21 +4,27 @@
 
 {% block content %}
 <div class="max-w-xl mx-auto">
-  <h1 class="text-xl font-semibold mb-6">Quick Catch settings</h1>
+  <h1 class="text-xl font-semibold text-primary mb-6">⚙️ Quick Catch settings</h1>
 
-  <div class="card bg-base-100 shadow-xl">
+  <div class="card bg-base-100 shadow-xl border border-base-200">
     <div class="card-body">
-      <ul class="space-y-2 text-base-content/80">
-        <li><strong>Default energy:</strong> {{ profile.default_energy_level|capfirst }}</li>
-        <li><strong>Timezone:</strong> {{ profile.timezone }}</li>
-        <li><strong>Email plan summaries:</strong> {{ profile.email_opt_in|yesno:"Yes,No" }}</li>
-        <li><strong>Focus:</strong> {{ profile.neurodivergent_focus|capfirst }}</li>
+      <ul class="space-y-3 text-base-content/80">
+        <li class="flex flex-wrap items-center gap-2">
+          <strong class="text-base-content/90">Default energy:</strong>
+          <span class="badge badge-sm {% if profile.default_energy_level == 'low' %}badge-secondary{% elif profile.default_energy_level == 'high' %}badge-accent{% else %}badge-primary{% endif %}">{{ profile.default_energy_level|capfirst }}</span>
+        </li>
+        <li><strong class="text-base-content/90">Timezone:</strong> {{ profile.timezone }}</li>
+        <li class="flex flex-wrap items-center gap-2">
+          <strong class="text-base-content/90">Email plan summaries:</strong>
+          <span class="badge badge-sm {% if profile.email_opt_in %}badge-success{% else %}badge-ghost{% endif %}">{{ profile.email_opt_in|yesno:"Yes,No" }}</span>
+        </li>
+        <li><strong class="text-base-content/90">Focus:</strong> {{ profile.neurodivergent_focus|capfirst }}</li>
       </ul>
       <p class="text-sm text-base-content/50 mt-4">
         Editable profile form can be added here or merged into account settings.
       </p>
       <div class="card-actions justify-end mt-4">
-        <a href="{% url 'quick_catch:dump' %}" class="btn btn-ghost btn-sm">Back to Quick Catch</a>
+        <a href="{% url 'quick_catch:dump' %}" class="btn btn-primary btn-outline btn-sm">Back to Quick Catch</a>
       </div>
     </div>
   </div>
